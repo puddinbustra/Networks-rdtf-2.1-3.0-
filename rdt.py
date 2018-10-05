@@ -90,10 +90,16 @@ class RDT:
             #if this was the last packet, will return on the next iteration
             
     
+                
+#All below must deal with packet corruption
+
     def rdt_2_1_send(self, msg_S):
         pass
+        #If there’s a NACK, resend
         
     def rdt_2_1_receive(self):
+        #Examine the checksum
+                 #Send an ACK or NACK if it’s right or wrong
         pass
     
     def rdt_3_0_send(self, msg_S):
@@ -101,6 +107,7 @@ class RDT:
         
     def rdt_3_0_receive(self):
         pass
+
         
 
 if __name__ == '__main__':
