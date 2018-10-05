@@ -93,14 +93,34 @@ class RDT:
                 
 #All below must deal with packet corruption
 
+
+#rdt 2.0 does:  237 of pdf has pic
+#Error detection(corruption)
+#Receiver feedback (NAK OR ACK)
+#Retransmission - "A packet received in error at receiver will be retransmitted"
+             #- not entirely sure what that means, so I won't add that yet
     def rdt_2_1_send(self, msg_S):
         pass
-        #If there’s a NACK, resend
+        #2 states: expecting sent packet or expecting response to packet
+        #This means our seq number (which we may have to add to the thing) will be 0 or 1
+
+        #Check p 238 on pdf for pics
+        #If waiting for ack
+            #Will stop and wait for an ACK OR NAK and check it sequence number
+                #If there’s a NACK, resend
+                #If there's ACK for wrong sequence number (idk if that is needed/could happen here), resend
+            #If all good
+                #Send next data packet, and switch states
+        #elif  waiting for packet
+            #
         
     def rdt_2_1_receive(self):
         #Examine the checksum
-                 #Send an ACK or NACK if it’s right or wrong
+                 #Send an ACK or NAK if it’s right or wrong
+
         pass
+
+
     
     def rdt_3_0_send(self, msg_S):
         pass
@@ -109,7 +129,7 @@ class RDT:
         pass
 
         
-
+#Don't need below, just look above :)
 if __name__ == '__main__':
     parser =  argparse.ArgumentParser(description='RDT implementation.')
     parser.add_argument('role', help='Role is either client or server.', choices=['client', 'server'])
