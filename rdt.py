@@ -116,23 +116,6 @@ class RDT:
 
         #Wait for ACK 1
             #Same as ACK 0
-
-
-
-        #General info:
-            #2 major states: expecting sent packet or expecting response to packet
-                #2 minor states - is it looking for seq 1 or seq 0
-            #This means our seq number (which we may have to add to the thing) will be 0 or 1
-
-            #Check p 238 on pdf for pics
-            #If waiting for ack
-                #Will stop and wait for an ACK OR NAK and check it sequence number
-                    #If there’s a NACK, resend
-                    #If there's ACK for wrong sequence number (idk if that is needed/could happen here), resend
-                #If all good
-                    #Send next data packet, and switch states
-            #elif  waiting for packet
-                
         
     def rdt_2_1_receive(self):
         #2 states - wait for 0 or wait for 1:
@@ -146,11 +129,44 @@ class RDT:
         pass
 
 
-    
+    #RDT 3.0 adds timeouts
     def rdt_3_0_send(self, msg_S):
+        #Wait for call 0
+            #After first time:
+                #Also continuously receive packets (it looks like anyway)
+
+            #Send packet
+            #Start timer
+
+        #Wait for ACK 0
+            #Receive packet and check for corruption continuously
+                #Ask to resend if necessary and stay in this state
+                #otherwise move on
+                #restart timer
+            #Timeout
+                #Resend packet, restart timer
+
+        #Wait for call 1
+            #May need extra rcv packet call
+
+            #Same as call 0 down here
+
+        #Wait for ACK 1
+            #Same as ACK 0
         pass
-        
+
+
     def rdt_3_0_receive(self):
+        #Wait for 0 seq
+            #Receive forever, and check if corrupt or has seq1
+                #Then resend
+        #Then receive packet forever, checking for corruption and having seq 0
+            #Extract, deliver data and then make packet with ACK0,checksum and send it
+
+        #Wait for 1 seq
+            #Same as 0 seq
+
+        #Then same as 0 seq
         pass
 
         
