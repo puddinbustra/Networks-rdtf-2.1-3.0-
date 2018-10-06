@@ -101,22 +101,47 @@ class RDT:
              #- not entirely sure what that means, so I won't add that yet
     def rdt_2_1_send(self, msg_S):
         pass
-        #2 states: expecting sent packet or expecting response to packet
-        #This means our seq number (which we may have to add to the thing) will be 0 or 1
+        seq = 0
 
-        #Check p 238 on pdf for pics
-        #If waiting for ack
-            #Will stop and wait for an ACK OR NAK and check it sequence number
-                #If there’s a NACK, resend
-                #If there's ACK for wrong sequence number (idk if that is needed/could happen here), resend
-            #If all good
-                #Send next data packet, and switch states
-        #elif  waiting for packet
-            #
+        #Wait for call 0
+            #Send packet
+
+        #Wait for ACK 0
+            #Receive packet and check for corruption
+                #Ask to resend if necessary and stay in this state
+                #otherwise move on
+
+        #Wait for call 1
+            #Same as call 0
+
+        #Wait for ACK 1
+            #Same as ACK 0
+
+
+
+        #General info:
+            #2 major states: expecting sent packet or expecting response to packet
+                #2 minor states - is it looking for seq 1 or seq 0
+            #This means our seq number (which we may have to add to the thing) will be 0 or 1
+
+            #Check p 238 on pdf for pics
+            #If waiting for ack
+                #Will stop and wait for an ACK OR NAK and check it sequence number
+                    #If there’s a NACK, resend
+                    #If there's ACK for wrong sequence number (idk if that is needed/could happen here), resend
+                #If all good
+                    #Send next data packet, and switch states
+            #elif  waiting for packet
+                
         
     def rdt_2_1_receive(self):
-        #Examine the checksum
-                 #Send an ACK or NAK if it’s right or wrong
+        #2 states - wait for 0 or wait for 1:
+
+        #Waiting for seq 0
+        #Send packet parts and receive packet part(checks for corruption)
+
+        #Waiting for seq 1
+        #Send packet parts and receive packet part(checks for corruption)
 
         pass
 
