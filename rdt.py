@@ -12,7 +12,7 @@ class Packet:
     checksum_length = 32 
         
     def __init__(self, seq_num, msg_S):
-        print(seq_num," is seq num")
+     #   print(seq_num," is seq num")
         self.seq_num = seq_num
         self.msg_S = msg_S
         
@@ -29,7 +29,7 @@ class Packet:
     def get_byte_S(self):
         #convert sequence number of a byte field of seq_num_S_length bytes
         seq_num_S = str(self.seq_num).zfill(self.seq_num_S_length)
-        #convert length to a byte field of length_S_length bytes
+        #convert length to a byte field of length_S_length byte
         length_S = str(self.length_S_length + len(seq_num_S) + self.checksum_length + len(self.msg_S)).zfill(self.length_S_length)
         #compute the checksum
         checksum = hashlib.md5((length_S+seq_num_S+self.msg_S).encode('utf-8'))
@@ -100,9 +100,11 @@ class RDT:
 #Receiver feedback (NAK OR ACK)
 #Retransmission - aka NAK
              #- not entirely sure what that means, so I won't add that yet
+#Also deals with garbled NAKs and ACKs
     def rdt_2_1_send(self, msg_S):
-        pass
+        #Make checksum - not clear if this is already taken care of or needs to be here. Corrupt() might have it down
 
+        #Wait for call from above, make packet, then send packet
         p = Packet(self.seq_num, msg_S)
         self.seq_num += 1
         self.network.udt_send(p.get_byte_S())
@@ -110,10 +112,10 @@ class RDT:
 
         #seq = 0
 
-        #Wait for ACK 0
-            #Receive packet and check for corruption
-                #Ask to resend if necessary and stay in this state
-                #otherwise move on
+        # Wait for ACK 0
+        #     Receive packet and check for corruption
+        #         Ask to resend if necessary and stay in this state
+        #         otherwise move on
 
         #Wait for call 1
             #Same as call 0
@@ -122,6 +124,59 @@ class RDT:
             #Same as ACK 0
         
     def rdt_2_1_receive(self):
+        #The sequence number that's currently saved
+        #This is important because if the seq nums themselves aren't 0 or 1, we can use this to dictate if the state
+        #should change as a result
+        seq_saved = 0
+
+        #If state == 0, it is waiting for ack or nak 0
+        #If state == 1, it is waiting for ack or nak 1
+        #starting in 0, just because that seems right
+        state = 0
+        #extract packet, then deliver data
+        ret_S = None
+        byte_S = self.network.udt_receive()
+        self.byte_buffer += byte_S
+        # keep extracting packets - if reordered, could get more than one
+        while True:
+            # check if we have received enough bytes
+            if (len(self.byte_buffer) < Packet.length_S_length):
+                return ret_S  # not enough bytes to read packet length
+            # extract length of packet
+            length = int(self.byte_buffer[:Packet.length_S_length])
+            if len(self.byte_buffer) < length:
+                return ret_S  # not enough bytes to read the whole packet
+            # create packet from buffer content and add to return string
+            p = Packet.from_byte_S(self.byte_buffer[0:length])
+
+            #Hugh adding this
+            seq_num_S = byte_S[Packet.length_S_length: Packet.seq_num_S_length + Packet.seq_num_S_length]
+
+            ret_S = p.msg_S if (ret_S is None) else ret_S + p.msg_S
+            # remove the packet bytes from the buffer
+            self.byte_buffer = self.byte_buffer[length:]
+            # if this was the last packet, will return on the next iteration
+            if state == 0:
+                #If it's corrupt or a duplicate
+                if Packet.corrupt(byte_S) or seq_num_S == seq_saved:
+                    #Then resend last packet
+
+                #If packet is not corrupt, then unpack and deliver it, so don't do much
+                else:
+                    state = 1
+                    #If it's odd, then it's a 1, if it's even it's a 0
+                    seq_saved = seq_num_S % 2
+
+            # If state == 1, do the same thingish
+            else:
+                if Packet.corrupt(byte_S) or seq_num_S == seq_saved:
+                    #Then resend last packet
+                    
+                # If packet is not corrupt, then unpack and deliver it, so don't do much
+                else:
+                    seq_saved = seq_num_S % 2
+                    state = 0
+
         #2 states - wait for 0 or wait for 1:
 
         #Waiting for seq 0
