@@ -12,6 +12,7 @@ class Packet:
     checksum_length = 32 
         
     def __init__(self, seq_num, msg_S):
+        print(seq_num," is seq num")
         self.seq_num = seq_num
         self.msg_S = msg_S
         
@@ -94,17 +95,20 @@ class RDT:
 #All below must deal with packet corruption
 
 
-#rdt 2.0 does:  237 of pdf has pic
+#rdt 2.1  does:  237 of pdf has pic
 #Error detection(corruption)
 #Receiver feedback (NAK OR ACK)
-#Retransmission - "A packet received in error at receiver will be retransmitted"
+#Retransmission - aka NAK
              #- not entirely sure what that means, so I won't add that yet
     def rdt_2_1_send(self, msg_S):
         pass
-        seq = 0
 
-        #Wait for call 0
-            #Send packet
+        p = Packet(self.seq_num, msg_S)
+        self.seq_num += 1
+        self.network.udt_send(p.get_byte_S())
+
+
+        #seq = 0
 
         #Wait for ACK 0
             #Receive packet and check for corruption
@@ -129,7 +133,7 @@ class RDT:
         pass
 
 
-    #RDT 3.0 adds timeouts
+    #RDT 3.0 adds timeouts, and adds an extra index bit to check order
     def rdt_3_0_send(self, msg_S):
         #Wait for call 0
             #After first time:
