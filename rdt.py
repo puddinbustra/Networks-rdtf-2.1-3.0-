@@ -1,3 +1,5 @@
+#Hugh's starting code stuff
+
 import Network
 import argparse
 from time import sleep
