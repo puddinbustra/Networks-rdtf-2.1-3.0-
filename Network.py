@@ -28,6 +28,8 @@ class NetworkLayer:
         if role_S == 'client':
             print('Network: role is client')
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print(server_S)
+            print(port)
             self.conn.connect((server_S, port))
             self.conn.settimeout(self.socket_timeout)
             
@@ -121,12 +123,12 @@ if __name__ == '__main__':
     network = NetworkLayer(args.role, args.server, args.port)
     if args.role == 'client':
         network.udt_send('MSG_FROM_CLIENT')
-        sleep(2)
+        sleep(10000)
         print(network.udt_receive())
         network.disconnect()
         
     else:
-        sleep(1)
+        sleep(2000)
         print(network.udt_receive())
         network.udt_send('MSG_FROM_SERVER')
         network.disconnect()
