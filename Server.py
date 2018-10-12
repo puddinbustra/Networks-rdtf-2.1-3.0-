@@ -35,10 +35,11 @@ if __name__ == '__main__':
 
     print("Initializing RDT")
     rdt = RDT.RDT('server', None, args.port)
+    #rdt.rdt_1_0_receive()
+
     while(True):
-        #print("Listening...")
         #try to receiver message before timeout
-        msg_S = rdt.rdt_2_1_receive()
+        msg_S = rdt.rdt_1_0_receive()
         if msg_S is None:
             if time_of_last_data + timeout < time.time():
                 break
@@ -49,8 +50,8 @@ if __name__ == '__main__':
         #convert and reply
         rep_msg_S = piglatinize(msg_S)
         print('Converted %s \nto \n%s\n' % (msg_S, rep_msg_S))
-        rdt.rdt_2_1_send(rep_msg_S)
-        
+        rdt.rdt_1_0_send(rep_msg_S)
+
     rdt.disconnect()
 
     

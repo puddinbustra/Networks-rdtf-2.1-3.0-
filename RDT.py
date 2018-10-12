@@ -93,7 +93,7 @@ class RDT:
     ## buffer of bytes read from network
     byte_buffer = ''
 
-    last_successful_bit = 1
+    last_successful_bit = 0
 
     def __init__(self, role_S, server_S, port):
         self.network = Network.NetworkLayer(role_S, server_S, port)
@@ -109,6 +109,8 @@ class RDT:
     def rdt_1_0_receive(self):
         ret_S = None
         byte_S = self.network.udt_receive()
+        print("Byte string:")
+        print(byte_S)
         self.byte_buffer += byte_S
         #keep extracting packets - if reordered, could get more than one
         while True:
@@ -128,50 +130,36 @@ class RDT:
             
     
     def rdt_2_1_send(self, msg_S):
-        self.seq_num = (self.seq_num + 1) % 2
         packet = Packet(self.seq_num, msg_S)
+        self.seq_num = (self.seq_num + 1) % 2
+        print("Sequence number:")
+        print(self.seq_num)
         bytes_of_sent_message = packet.get_byte_S()
+        print("Packet bytes: ")
+        print(bytes_of_sent_message)
         self.network.udt_send(bytes_of_sent_message)
         
     def rdt_2_1_receive(self):
         received_message = None
         received_bytes = self.network.udt_receive()
         self.byte_buffer += received_bytes
+        print("Received bytes:")
+        print(received_bytes)
+        print("byte_buffer is")
+        print(self.byte_buffer)
 
         checksum_packet = Packet(None, None)
         locally_calculated_checksum = checksum_packet.derive_checksum(received_bytes)
-        print("hereherehere is recieved byte")
+        print("Received byte")
         print(received_bytes)
-        print(type(received_bytes))
         received_checksum = checksum_packet.get_received_checksum(received_bytes)
 
-        print("ok")
-        print(locally_calculated_checksum)
-        print(received_checksum)
+        print("locally calculated sums - " + locally_calculated_checksum)
+        print(" recieved checksums - " + received_checksum)
 
         bytes_are_corrupted = locally_calculated_checksum != received_checksum
+        print("are the bytes corrupted? ")
         print(bytes_are_corrupted)
-
-        '''while (bytes_are_corrupted):
-            self.network.udt_send(str(self.last_successful_bit))
-            received_bytes = self.network.udt_receive()
-            locally_calculated_checksum = checksum_packet.derive_checksum(received_bytes)
-            received_checksum = checksum_packet.get_received_checksum(received_bytes)
-            bytes_are_corrupted = locally_calculated_checksum != received_checksum'''
-
-
-
-        number_of_bits_to_describe_message_length = Packet.length_S_length
-        while True:
-            if(len(self.byte_buffer) < number_of_bits_to_describe_message_length):
-                return received_message
-            length =\
-                int(self.byte_buffer[:number_of_bits_to_describe_message_length])
-            if len(self.byte_buffer) < length:
-                return received_message
-            packet = Packet.from_byte_S(self.byte_buffer[0:length])
-            received_message += packet.msg_S
-            self.byte_buffer = self.byte_buffer[length:]
     
     def rdt_3_0_send(self, msg_S):
         pass
