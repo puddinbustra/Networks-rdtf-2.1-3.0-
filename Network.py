@@ -28,8 +28,8 @@ class NetworkLayer:
         if role_S == 'client':
             print('Network: role is client')
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print(server_S)
-            print(port)
+            #print(server_S)
+            #print(port)
             self.conn.connect((server_S, port))
             self.conn.settimeout(self.socket_timeout)
             
@@ -96,8 +96,9 @@ class NetworkLayer:
                 with self.lock:
                     self.buffer_S += recv_bytes.decode('utf-8')
             # you may need to uncomment the BlockingIOError handling on Windows machines
-#             except BlockingIOError as err:
-#                 pass
+            #Hugh has unblocked this so it will work
+            except BlockingIOError as err:
+                pass
             except socket.timeout as err:
                 pass
             if self.stop:
