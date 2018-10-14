@@ -96,35 +96,48 @@ class RDT:
 
     def rdt_2_1_send(self, msg_S):
         p = Packet(self.seq_num, msg_S)
-        print(p.get_byte_S())
+        # print(p.get_byte_S())
         self.seq_num = (self.seq_num + 1) % 2
-        print(self.seq_num)
+        # print(self.seq_num)
+        #Sending the message
         self.network.udt_send(p.get_byte_S())
 
-        waiting_for_ACK = False
+        # After we send the message, we wait for ACK
+        waiting_for_ACK = True
         while (waiting_for_ACK):
-            received_bit = self.network.udt_receive()
-            if (received_bit == self.last_successful_bit):
+            #received_bit = self.network.udt_receive()
+            byte_seq = self.network.udt_receive()
+
+            #Get the sequence number, and check if it matches our packet sequence number
+            #If it does, good, do nothing. Otherwise, resend the previous packet
+            if (int(byte_seq) == self.seq_num):
                 waiting_for_ACK = False
+
+            # If we get the wrong bit, we resend our old packet, and continue waiting
             else:
                 print("Received NACK")
+                self.network.udt_send(p.get_byte_S())
 
         # Wait for response (ACK or NACK)
-        #   if ACK, continute
+        #   if ACK, continue
         #
         #   if NACK, repeat
 
     def rdt_2_1_receive(self):
         ret_S = None
         byte_S = self.network.udt_receive()
+        #self.byte_buffer += byte_S     moved down like 15 lines
         packet = Packet(None, None)
-        if (len(byte_S) > 0):
-            print(byte_S)
-            packet = Packet.from_byte_S(byte_S)
-            print(packet.get_byte_S())
-            print(packet.get_sequence_number())
 
-        '''
+
+        #if (len(byte_S) > 0):
+            #print(byte_S)
+            #packet = Packet.from_byte_S(byte_S)
+            #print(packet.get_byte_S())
+            #print(packet.get_sequence_number())
+
+
+        #If the packet is not corrupt, send ACK as 0 or 1, and deliver packet
         packet_is_valid = not Packet.corrupt(byte_S)
         if (packet_is_valid):
             sequence_number = packet.get_sequence_number()
@@ -146,8 +159,14 @@ class RDT:
                 #remove the packet bytes from the buffer
                 self.byte_buffer = self.byte_buffer[length:]
                 #if this was the last packet, will return on the next iteration
-        #else:
-            #print("Packet was invalid (corrupt or checksums don't match.")'''
+
+        #If the packet wasn't valid, send a NAK, and wait for the response
+        #This will send the other sequence number, indicating the packet was not received correctly
+        else:
+            sequence_number = packet.get_sequence_number()
+            self.network.udt_send((sequence_number+1) % 2)
+            #print("Packet was invalid (corrupt or checksums don't match.")
+
 
     def rdt_3_0_send(self, msg_S):
         pass
@@ -166,14 +185,16 @@ if __name__ == '__main__':
     rdt = RDT(args.role, args.server, args.port)
     if args.role == 'client':
         rdt.rdt_2_1_send('MSG_FROM_CLIENT')
-        sleep(50000)
-        print(rdt.rdt_1_0_receive())
+        sleep(1)
+        #sleep(50000)
+        print(rdt.rdt_2_1_receive())
         rdt.disconnect()
 
 
     else:
-        sleep(30000)
-        print(rdt.rdt_1_0_receive())
+        sleep(2)
+        #sleep(30000)
+        print(rdt.rdt_2_1_receive())
         rdt.rdt_2_1_send('MSG_FROM_SERVER')
         rdt.disconnect()
 
